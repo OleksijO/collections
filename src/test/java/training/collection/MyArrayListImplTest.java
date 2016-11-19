@@ -1,4 +1,4 @@
-package training.collection.impl;
+package training.collection;
 
 import org.junit.Assert;
 import org.junit.Before;

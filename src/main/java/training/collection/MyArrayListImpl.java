@@ -1,4 +1,4 @@
-package training.collection.impl;
+package training.collection;
 
 import java.util.*;
 import java.util.function.Consumer;
