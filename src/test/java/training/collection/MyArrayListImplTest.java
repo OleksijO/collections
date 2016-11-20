@@ -133,7 +133,6 @@ public class MyArrayListImplTest {
 
     @Test
     public void testRemoveNull() throws Exception {
-
         listWithOneNullElement.remove(null);
         assertEquals("1. removed null", 0, listWithOneNullElement.size());
         assertFalse("2. removed not in list", listWithOneNullElement.contains(null));
@@ -141,7 +140,6 @@ public class MyArrayListImplTest {
 
     @Test
     public void testRemoveNotNull() throws Exception {
-        //System.out.println(Arrays.toString(((MyArrayListImpl) listWithThreeElementsOneIsNull).getInnerArray()));
         listWithThreeElementsOneIsNull.remove(new Integer(1));
         assertEquals("1. removed null", 2, listWithThreeElementsOneIsNull.size());
         assertEquals("2. check 1st elem after remove", null, listWithThreeElementsOneIsNull.get(0));
@@ -202,7 +200,19 @@ public class MyArrayListImplTest {
 
     @Test
     public void testRetainAll() throws Exception {
+        List<Integer> testList = new ArrayList<>(listWithThreeElementsOneIsNull);
+        listWithThreeElementsOneIsNull.add(4);
+        listWithThreeElementsOneIsNull.add(5);
+        listWithThreeElementsOneIsNull.add(6);
+        listWithThreeElementsOneIsNull.retainAll(testList);
+        testList.clear();
+        testList.add(1);
+        testList.add(null);
+        testList.add(3);
+        System.out.println(testList);
+        System.out.println(listWithThreeElementsOneIsNull);
 
+        assertEquals("", testList, listWithThreeElementsOneIsNull);
     }
 
     @Test
@@ -220,17 +230,24 @@ public class MyArrayListImplTest {
 
     @Test
     public void testSet() throws Exception {
-
+        listWithThreeElementsOneIsNull.set(1,2);
+        assertEquals(new Integer(2), listWithThreeElementsOneIsNull.get(1));
     }
 
     @Test
-    public void testAdd1() throws Exception {
-
+    public void testAddToPosition() throws Exception {
+        List<Integer> testList = new ArrayList<>(listWithThreeElementsOneIsNull);
+        testList.add(1,2);
+        listWithThreeElementsOneIsNull.add(1,2);
+        assertEquals(testList, listWithThreeElementsOneIsNull);
     }
 
     @Test
-    public void testRemove1() throws Exception {
-
+    public void testRemoveByIndex() throws Exception {
+        List<Integer> testList = new ArrayList<>(listWithThreeElementsOneIsNull);
+        testList.remove(1);
+        listWithThreeElementsOneIsNull.remove(1);
+        assertEquals(testList, listWithThreeElementsOneIsNull);
     }
 
     @Test
@@ -272,7 +289,7 @@ public class MyArrayListImplTest {
         assertEquals("15", new Integer(3), iterator.next());
     }
 
-    @Test (expected = NoSuchElementException.class)
+    @Test(expected = NoSuchElementException.class)
     public void testListIteratorException() throws Exception {
         ListIterator<Integer> iterator = listWithThreeElementsOneIsNull.listIterator();
         iterator.next();
@@ -282,6 +299,40 @@ public class MyArrayListImplTest {
         iterator.previous();
     }
 
+    @Test(expected = ConcurrentModificationException.class)
+    public void testListIteratorConcurrentException() throws Exception {
+        for (Integer i : listWithThreeElementsOneIsNull) {
+            listWithThreeElementsOneIsNull.remove(i);
+        }
+    }
+
+
+    @Test(expected = ConcurrentModificationException.class)
+    public void testListIteratorMustBeConcurrentException() throws Exception {
+        List<Integer> arrayList = new MyArrayListImpl<>();
+        arrayList.add(1);
+        arrayList.add(2);
+        arrayList.add(3);
+        arrayList.add(4);
+        arrayList.add(5);
+        int counter = 0;
+        for (Integer i : arrayList) {
+            counter++;
+            if (counter == 3 ) {
+                arrayList.remove(arrayList.indexOf(i));
+            }
+        }
+    }
+
+    @Test(expected = ConcurrentModificationException.class)
+    public void testListIteratorConcurrentException2() throws Exception {
+        for (Integer i : listWithThreeElementsOneIsNull) {
+            if (i == null) {
+                listWithThreeElementsOneIsNull.add(i);
+            }
+        }
+    }
+
     @Test
     public void testListIterator1() throws Exception {
         ListIterator<Integer> iterator = listWithThreeElementsOneIsNull.listIterator(1);
@@ -289,7 +340,7 @@ public class MyArrayListImplTest {
         assertTrue("2", iterator.hasPrevious());
         assertEquals("3", null, iterator.next());
     }
-
+/*
     @Test
     public void testSubList() throws Exception {
         List<Integer> testList = new ArrayList<>(listWithThreeElementsOneIsNull);
@@ -313,6 +364,7 @@ public class MyArrayListImplTest {
         assertEquals("4.1. two elem", subTestList.get(1), listToAssert.get(1));
 
     }
+*/
 
     @Test
     public void testEquals() throws Exception {

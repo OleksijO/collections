@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 /**
  * Created by oleksij.onysymchuk@gmail on 19.11.2016.
  */
-public class MyArrayListImpl<E> implements List<E> {
+public class MyArrayListImpl<E> implements List<E>, Cloneable {
     private final static String ERROR_NEGATIVE_CAPACITY = "Initial capacity can not be under zero!";
     private final static String INDEX_OUT_OF_BOUNDS = "Index is out of bounds. Index = %d.";
     private final static String DESTINATION_ARRAY_UNSUFFICIENT_CAPACITY =
@@ -19,6 +19,7 @@ public class MyArrayListImpl<E> implements List<E> {
 
     private int size = 0;
     private Object array[];
+    private int modCount = 0;
 
     public MyArrayListImpl(int initialCapacity) {
         checkNonNegative(initialCapacity, ERROR_NEGATIVE_CAPACITY);
@@ -91,7 +92,8 @@ public class MyArrayListImpl<E> implements List<E> {
         return true;
     }
 
-    private void ensureCapacity(int capacity) {
+    public void ensureCapacity(int capacity) {
+        modCount++;
         checkNonNegative(capacity, String.format(NO_PLACE_LEFT, size));
         if (capacity > array.length) {
             int newArrayLength = (array.length * 3) / 2 + 1;
@@ -106,6 +108,7 @@ public class MyArrayListImpl<E> implements List<E> {
 
     @Override
     public boolean remove(Object obj) {
+        modCount++;
         if (obj == null) {
             for (int index = 0; index < size; index++) {
                 if (array[index] == null) {
@@ -156,6 +159,7 @@ public class MyArrayListImpl<E> implements List<E> {
 
     @Override
     public boolean removeAll(Collection<?> collection) {
+        modCount++;
         Iterator iterator = this.iterator();
         while (iterator.hasNext()) {
             if (collection.contains(iterator.next())) {
@@ -167,22 +171,24 @@ public class MyArrayListImpl<E> implements List<E> {
 
     @Override
     public boolean retainAll(Collection<?> collection) {
-        Object[] sameElements = Arrays.stream(array).filter(collection::contains).toArray();
+        modCount++;
         int oldSize = size;
-        clear();
-        System.arraycopy(sameElements, 0, array, 0, sameElements.length);
-        size = sameElements.length;
+        Iterator iterator = this.iterator();
+        while (iterator.hasNext()) {
+            if (!collection.contains(iterator.next())) {
+                iterator.remove();
+            }
+        }
         return size != oldSize;
     }
 
     @Override
     public void clear() {
-        System.out.println(Arrays.toString(array));
+        modCount++;
         for (int i = 0; i < array.length; i++) {
             array[i] = null;
         }
         size = 0;
-        System.out.println(Arrays.toString(array));
     }
 
     @Override
@@ -201,6 +207,7 @@ public class MyArrayListImpl<E> implements List<E> {
     @Override
     public E set(int index, E element) {
         checkIndex(index);
+        modCount++;
         array[index] = element;
         return (E) array[index];
     }
@@ -208,13 +215,15 @@ public class MyArrayListImpl<E> implements List<E> {
     @Override
     public void add(int index, E element) {
         ensureCapacity(size + 1);
-        selfArrayCopy(index, index + 1, size - index - 1);
+        selfArrayCopy(index, index + 1, size - index);
         array[index] = element;
+        size++;
     }
 
     @Override
     public E remove(int index) {
         checkIndex(index);
+        modCount++;
         E element = (E) array[index];
         removeWithoutChecks(index);
         return element;
@@ -275,19 +284,25 @@ public class MyArrayListImpl<E> implements List<E> {
 
     @Override
     public List<E> subList(int fromIndex, int toIndex) {
-        int elementNumberToCopy = toIndex - fromIndex;
-        if (elementNumberToCopy < 1) {
-            throw new IllegalArgumentException(TO_LESS_FROM);
+        //TODO
+        throw new UnsupportedOperationException();
+    }
+
+
+    @Override
+    public List<E> clone() {
+        MyArrayListImpl<E> newList = null;
+        try {
+            newList = (MyArrayListImpl<E>) super.clone();
+        } catch (CloneNotSupportedException ignored) {
         }
-        checkIndex(fromIndex);
-        checkIndex(toIndex-1);
-        MyArrayListImpl<E> subList = new MyArrayListImpl<E>(elementNumberToCopy);
-        System.arraycopy(array, fromIndex, subList.array, 0, elementNumberToCopy);
-        subList.size = elementNumberToCopy;
-        return subList;
+        System.arraycopy(array, 0, newList.array, 0, size);
+        newList.modCount = 0;
+        return newList;
     }
 
     public void trimToSize() {
+        modCount++;
         if (size < array.length) {
             Object[] newArray = new Object[size];
             System.arraycopy(array, 0, newArray, 0, size);
@@ -306,7 +321,6 @@ public class MyArrayListImpl<E> implements List<E> {
 
     private class MyListIterator extends MyIterator implements ListIterator<E> {
 
-
         public MyListIterator(int currentIndex) {
             checkIndex(currentIndex);
             this.current = currentIndex;
@@ -322,6 +336,7 @@ public class MyArrayListImpl<E> implements List<E> {
             if (current < 1) {
                 throw new NoSuchElementException();
             }
+            checkForComodification();
             current--;
             lastReturned = current;
             return (E) array[lastReturned];
@@ -341,6 +356,7 @@ public class MyArrayListImpl<E> implements List<E> {
         public void set(E obj) {
             if (lastReturned < 0)
                 throw new IllegalStateException();
+            checkForComodification();
             try {
                 MyArrayListImpl.this.set(lastReturned, obj);
             } catch (IndexOutOfBoundsException ex) {
@@ -350,6 +366,7 @@ public class MyArrayListImpl<E> implements List<E> {
 
         @Override
         public void add(E obj) {
+            checkForComodification();
             try {
                 MyArrayListImpl.this.add(current, obj);
             } catch (IndexOutOfBoundsException e) {
@@ -369,7 +386,10 @@ public class MyArrayListImpl<E> implements List<E> {
          * Last returned element index
          */
         int lastReturned = -1;
-
+        /**
+         * Stores modification counter state when instance of iterator has created
+         */
+        int expectedModCount = modCount;
 
         public boolean hasNext() {
             return current != size;
@@ -377,27 +397,34 @@ public class MyArrayListImpl<E> implements List<E> {
 
         @SuppressWarnings("unchecked")
         public E next() {
-            int i = current;
-            if (i >= size)
+            checkForComodification();
+            if (current >= size)
                 throw new NoSuchElementException();
-            if (i >= MyArrayListImpl.this.array.length) {
+            if (current >= MyArrayListImpl.this.array.length) {
                 throw new ConcurrentModificationException();
             }
-            current = i + 1;
-            lastReturned = i;
+            lastReturned = current;
+            current++;
             return (E) MyArrayListImpl.this.array[lastReturned];
         }
 
         public void remove() {
             if (lastReturned < 0)
                 throw new IllegalStateException();
+            checkForComodification();
             try {
                 MyArrayListImpl.this.remove(lastReturned);
                 current = lastReturned;
                 lastReturned = -1;
+                expectedModCount = modCount;
             } catch (IndexOutOfBoundsException e) {
                 throw new ConcurrentModificationException();
             }
+        }
+
+        final void checkForComodification() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
         }
     }
 
@@ -435,8 +462,16 @@ public class MyArrayListImpl<E> implements List<E> {
 
     @Override
     public String toString() {
-        return Arrays.toString(array);
-    }
+        StringBuilder builder = new StringBuilder("[");
+        for (int i = 0; i <size; i++) {
+            builder.append(get(i));
+            if (i<size-1) {
+                builder.append(", ");
+            }
+        }
+        builder.append("]");
+        return builder.toString();
+     }
 
     @Override
     public void forEach(Consumer<? super E> action) {
