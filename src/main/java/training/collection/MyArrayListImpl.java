@@ -4,7 +4,9 @@ import java.util.*;
 import java.util.function.Consumer;
 
 /**
- * Created by oleksij.onysymchuk@gmail on 19.11.2016.
+ * Variation of ArrayList implementation.
+ *
+ * @author oleksij.onysymchuk@gmail.com
  */
 public class MyArrayListImpl<E> implements List<E>, Cloneable {
     private final static String ERROR_NEGATIVE_CAPACITY = "Initial capacity can not be under zero!";
@@ -17,8 +19,17 @@ public class MyArrayListImpl<E> implements List<E>, Cloneable {
 
     private final static int DEFAULT_CAPACITY = 10;
 
+    /**
+     * Effective size of this list
+     */
     private int size = 0;
+    /**
+     * Inner values container
+     */
     private Object array[];
+    /**
+     * Concurrent modification counter for iterators
+     */
     private int modCount = 0;
 
     public MyArrayListImpl(int initialCapacity) {
