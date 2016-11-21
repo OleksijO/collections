@@ -295,8 +295,7 @@ public class MyArrayListImpl<E> implements List<E>, Cloneable {
 
     @Override
     public List<E> subList(int fromIndex, int toIndex) {
-        //TODO
-        throw new UnsupportedOperationException();
+        return new MySubList<E>(this, fromIndex, toIndex);
     }
 
 
@@ -402,6 +401,13 @@ public class MyArrayListImpl<E> implements List<E>, Cloneable {
          */
         int expectedModCount = modCount;
 
+        public MyIterator() {
+        }
+
+        private MyIterator(int current) {
+            this.current = current;
+        }
+
         public boolean hasNext() {
             return current != size;
         }
@@ -436,6 +442,236 @@ public class MyArrayListImpl<E> implements List<E>, Cloneable {
         final void checkForComodification() {
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
+        }
+    }
+
+    private class MySubList<E> implements List<E> {
+        private MyArrayListImpl parentList;
+        private int offset;
+        private int subSize;
+        private int modSubCount;
+
+        MySubList(MyArrayListImpl<E> parentList,
+                  int fromIndex, int toIndex) {
+            this.parentList = parentList;
+            this.offset = fromIndex;
+            this.subSize = toIndex - fromIndex;
+            this.modSubCount = MyArrayListImpl.this.modCount;
+        }
+
+        @Override
+        public E get(int index) {
+            checkIndex(index + offset);
+            return (E) parentList.get(offset + index);
+        }
+
+        @Override
+        public int size() {
+            return subSize;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return subSize != 0;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void add(int index, E obj) {
+            checkIndex(offset + index);
+            checkForComodification();
+            parentList.add(offset + index, obj);
+            modSubCount = modCount;
+            subSize++;
+        }
+
+        @Override
+        public E set(int index, E obj) {
+            checkIndex(offset + index);
+            checkForComodification();
+            E old = (E) parentList.get(offset + index);
+            parentList.set(offset + index, obj);
+            return old;
+        }
+
+        @Override
+        public E remove(int index) {
+            checkIndex(offset + index);
+            checkForComodification();
+            E removedEl = (E) parentList.remove(offset + index);
+            modSubCount = modCount;
+            subSize--;
+            return removedEl;
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ListIterator<E> listIterator() {
+            return new MySubListListIterator(offset);
+        }
+
+        @Override
+        public ListIterator<E> listIterator(int index) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<E> subList(int fromIndex, int toIndex) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean addAll(int index, Collection<? extends E> c) {
+            checkIndex(index + offset);
+            int collectionSize = c.size();
+            if (collectionSize == 0) {
+                return false;
+            }
+            checkForComodification();
+            parentList.addAll(offset + index, c);
+            modSubCount = modCount;
+            subSize += collectionSize;
+            return true;
+        }
+
+        @Override
+        public boolean removeAll(Collection<?> c) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean retainAll(Collection<?> c) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends E> collection) {
+            return addAll(subSize, collection);
+        }
+
+        final void checkForComodification() {
+            if (modCount != modSubCount)
+                throw new ConcurrentModificationException();
+        }
+
+        @Override
+        public Iterator<E> iterator() {
+            return new MySubListListIterator(offset);
+        }
+
+        @Override
+        public Object[] toArray() {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <T> T[] toArray(T[] a) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean add(E e) {
+            parentList.add(offset+subSize, e);
+            modSubCount = modCount;
+            return true;
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            //TODO
+            throw new UnsupportedOperationException();
+        }
+
+
+        private class MySubListListIterator implements ListIterator<E> {
+            private MyListIterator parentIterator;
+            private int current = 0;
+
+            private MySubListListIterator(int offset) {
+                parentIterator = new MyListIterator(offset);
+            }
+
+            @Override
+            public boolean hasNext() {
+                return parentIterator.hasNext() && current < subSize;
+            }
+
+            @Override
+            public E next() {
+                current++;
+                return (E) parentIterator.next();
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return parentIterator.hasPrevious() && current > 0;
+            }
+
+            @Override
+            public E previous() {
+                current--;
+                return (E) parentIterator.previous();
+            }
+
+            @Override
+            public int nextIndex() {
+                return current;
+            }
+
+            @Override
+            public int previousIndex() {
+                return current - 1;
+            }
+
+            @Override
+            public void remove() {
+                subSize--;
+                parentIterator.remove();
+            }
+
+            @Override
+            public void set(E e) {
+                //todo
+            }
+
+            @Override
+            public void add(E e) {
+                //todo
+            }
         }
     }
 
@@ -474,15 +710,15 @@ public class MyArrayListImpl<E> implements List<E>, Cloneable {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("[");
-        for (int i = 0; i <size; i++) {
+        for (int i = 0; i < size; i++) {
             builder.append(get(i));
-            if (i<size-1) {
+            if (i < size - 1) {
                 builder.append(", ");
             }
         }
         builder.append("]");
         return builder.toString();
-     }
+    }
 
     @Override
     public void forEach(Consumer<? super E> action) {

@@ -340,7 +340,7 @@ public class MyArrayListImplTest {
         assertTrue("2", iterator.hasPrevious());
         assertEquals("3", null, iterator.next());
     }
-/*
+
     @Test
     public void testSubList() throws Exception {
         List<Integer> testList = new ArrayList<>(listWithThreeElementsOneIsNull);
@@ -363,8 +363,19 @@ public class MyArrayListImplTest {
         assertEquals("4. two elem", subTestList, listToAssert);
         assertEquals("4.1. two elem", subTestList.get(1), listToAssert.get(1));
 
+        subTestList.remove(0);
+        listToAssert.remove(0);
+        assertEquals("5.1. original array changed after changes in sub",testList, listWithThreeElementsOneIsNull);
+        assertEquals("5.1. original array changed after changes in sub",2, listWithThreeElementsOneIsNull.size());
+
+        subTestList.add(4);
+        listToAssert.add(4);
+        subTestList.add(0,6);
+        listToAssert.add(0,6);
+        assertEquals("5.3. original array changed after changes in sub",testList, listWithThreeElementsOneIsNull);
+        assertEquals("5.4. original array changed after changes in sub",4, listWithThreeElementsOneIsNull.size());
     }
-*/
+
 
     @Test
     public void testEquals() throws Exception {
