@@ -8,40 +8,26 @@ import java.util.function.Consumer;
  *
  * @author oleksij.onysymchuk@gmail.com
  */
-public class MyArrayListImpl<E> implements List<E>, Cloneable {
+public class MyArrayListImpl<E> extends MyAbstractList<E> {
     private final static String ERROR_NEGATIVE_CAPACITY = "Initial capacity can not be under zero!";
-    private final static String INDEX_OUT_OF_BOUNDS = "Index is out of bounds. Index = %d.";
     private final static String DESTINATION_ARRAY_UNSUFFICIENT_CAPACITY =
             "Destination array has unsufficient capacity. List size = %d, array length = %d.";
-    private final static String NO_PLACE_LEFT =
-            "There is no place left in list to add element(s). Size = %d.";
-    private static final String TO_LESS_FROM = "toIndex can not be less then fromIndex.";
 
     private final static int DEFAULT_CAPACITY = 10;
 
-    /**
-     * Effective size of this list
-     */
-    private int size = 0;
+
     /**
      * Inner values container
      */
     private Object array[];
-    /**
-     * Concurrent modification counter for iterators
-     */
-    private int modCount = 0;
+
 
     public MyArrayListImpl(int initialCapacity) {
         checkNonNegative(initialCapacity, ERROR_NEGATIVE_CAPACITY);
         array = new Object[initialCapacity];
     }
 
-    private void checkNonNegative(int number, String errorMessage) {
-        if (number < 0) {
-            throw new IllegalArgumentException(errorMessage);
-        }
-    }
+
 
     public MyArrayListImpl() {
         this(DEFAULT_CAPACITY);
@@ -59,14 +45,17 @@ public class MyArrayListImpl<E> implements List<E>, Cloneable {
 
     @Override
     public boolean contains(Object obj) {
-        for (int i = 0; i < size; i++) {
-            if (array[i] == null) {
-                return true;
+        if (obj == null) {
+            for (int i = 0; i < size; i++) {
+                if (array[i] == null) {
+                    return true;
+                }
             }
-        }
-        for (int i = 0; i < size; i++) {
-            if (array[i].equals(obj)) {
-                return true;
+        } else {
+            for (int i = 0; i < size; i++) {
+                if (obj.equals(array[i])) {
+                    return true;
+                }
             }
         }
         return false;
@@ -141,6 +130,7 @@ public class MyArrayListImpl<E> implements List<E>, Cloneable {
 
     @Override
     public boolean containsAll(Collection<?> collection) {
+        Objects.requireNonNull(collection);
         for (Object el : collection) {
             if (!contains(el)) {
                 return false;
@@ -208,12 +198,7 @@ public class MyArrayListImpl<E> implements List<E>, Cloneable {
         return (E) array[index];
     }
 
-    private void checkIndex(int index) {
-        if (index >= size) {
-            throw new IllegalArgumentException(String.format(INDEX_OUT_OF_BOUNDS, index));
-        }
-        checkNonNegative(index, String.format(INDEX_OUT_OF_BOUNDS, index));
-    }
+
 
     @Override
     public E set(int index, E element) {
@@ -599,7 +584,7 @@ public class MyArrayListImpl<E> implements List<E>, Cloneable {
 
         @Override
         public boolean add(E e) {
-            parentList.add(offset+subSize, e);
+            parentList.add(offset + subSize, e);
             modSubCount = modCount;
             return true;
         }
