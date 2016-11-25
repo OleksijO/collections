@@ -252,8 +252,11 @@ public class MyArrayListImplTest {
 
     @Test
     public void testIndexOf() throws Exception {
+        listWithThreeElementsOneIsNull.add(2,3);
+        listWithThreeElementsOneIsNull.add(2,null);
+        System.out.println(listWithThreeElementsOneIsNull);
         assertEquals("1. No such element", -1, listWithThreeElementsOneIsNull.indexOf(5));
-        assertEquals("2. Has element", 2, listWithThreeElementsOneIsNull.indexOf(3));
+        assertEquals("2. Has element", 3, listWithThreeElementsOneIsNull.indexOf(3));
         assertEquals("3. Has element", 0, listWithThreeElementsOneIsNull.indexOf(1));
         assertEquals("4. Has null element", 1, listWithThreeElementsOneIsNull.indexOf(null));
         assertEquals("5. Has no null element", -1, listWithThreeElements.indexOf(null));
@@ -262,10 +265,12 @@ public class MyArrayListImplTest {
 
     @Test
     public void testLastIndexOf() {
+        listWithThreeElementsOneIsNull.add(2,3);
+        listWithThreeElementsOneIsNull.add(2,null);
         assertEquals("1. No such element", -1, listWithThreeElementsOneIsNull.lastIndexOf(5));
-        assertEquals("2. Has element", 2, listWithThreeElementsOneIsNull.lastIndexOf(3));
+        assertEquals("2. Has element", 4, listWithThreeElementsOneIsNull.lastIndexOf(3));
         assertEquals("3. Has element", 0, listWithThreeElementsOneIsNull.lastIndexOf(1));
-        assertEquals("4. Has null element", 1, listWithThreeElementsOneIsNull.lastIndexOf(null));
+        assertEquals("4. Has null element", 2, listWithThreeElementsOneIsNull.lastIndexOf(null));
         assertEquals("5. Has no null element", -1, listWithThreeElements.lastIndexOf(null));
     }
 

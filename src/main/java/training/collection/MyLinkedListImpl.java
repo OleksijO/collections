@@ -19,7 +19,7 @@ public class MyLinkedListImpl<E> extends MyAbstractList<E> implements Deque<E> {
     }
 
     public MyLinkedListImpl(Collection<? extends E> collection) {
-        this();
+
         addAll(collection);
     }
 
@@ -272,6 +272,19 @@ public class MyLinkedListImpl<E> extends MyAbstractList<E> implements Deque<E> {
         return oldValue;
     }
 
+
+    public E set1(int index, E element) {
+        checkIndex(index);
+        modCount++;
+        Node<E> current = getNodeByIndex(index);
+        try {
+            return current.value;
+        } finally {
+            current.value = element;
+        }
+
+    }
+
     @Override
     public void add(int index, E element) {
         checkIndex(index);
@@ -307,6 +320,39 @@ public class MyLinkedListImpl<E> extends MyAbstractList<E> implements Deque<E> {
 
     @Override
     public int indexOf(Object o) {
+        int index = 0;
+        Node<E> current = first;
+        if (o == null) {
+            while (index < size) {
+                if (current == null) {
+                    throw new ConcurrentModificationException();
+                }
+                if (current.value == null) {
+                    return index;
+                }
+                current = current.next;
+                index++;
+            }
+        } else {
+            while (index < size) {
+                if (current == null) {
+                    throw new ConcurrentModificationException();
+                }
+                if (o.equals(current.value)) {
+                    return index;
+                }
+                current = current.next;
+                index++;
+            }
+        }
+        if (current != null) {
+            throw new ConcurrentModificationException();
+        }
+        return (index == size) ? -1 : index;
+    }
+
+    @Override
+    public int lastIndexOf(Object o) {
         int index = size - 1;
         Node<E> current = last;
         if (o == null) {
@@ -336,11 +382,7 @@ public class MyLinkedListImpl<E> extends MyAbstractList<E> implements Deque<E> {
             throw new ConcurrentModificationException();
         }
         return index;
-    }
 
-    @Override
-    public int lastIndexOf(Object o) {
-        return indexOf(o);
     }
 
     @Override
@@ -616,11 +658,11 @@ public class MyLinkedListImpl<E> extends MyAbstractList<E> implements Deque<E> {
         int expectedModCount = modCount;
 
         public MyListIterator(int index) {
-            if (index==size) {
-                current=null;
+            if (index == size) {
+                current = null;
             } else {
                 checkIndex(index);
-                current=getNodeByIndex(index);
+                current = getNodeByIndex(index);
             }
             this.currentIndex = index;
         }
@@ -654,10 +696,10 @@ public class MyLinkedListImpl<E> extends MyAbstractList<E> implements Deque<E> {
             if (!hasPrevious()) {
                 throw new NoSuchElementException();
             }
-            if (current==null){
-                current=last;
+            if (current == null) {
+                current = last;
             } else {
-                current=current.previous;
+                current = current.previous;
             }
             lastReturned = current;
             currentIndex--;

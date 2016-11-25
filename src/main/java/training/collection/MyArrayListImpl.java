@@ -28,7 +28,6 @@ public class MyArrayListImpl<E> extends MyAbstractList<E> {
     }
 
 
-
     public MyArrayListImpl() {
         this(DEFAULT_CAPACITY);
     }
@@ -199,7 +198,6 @@ public class MyArrayListImpl<E> extends MyAbstractList<E> {
     }
 
 
-
     @Override
     public E set(int index, E element) {
         checkIndex(index);
@@ -246,6 +244,25 @@ public class MyArrayListImpl<E> extends MyAbstractList<E> {
 
     @Override
     public int indexOf(Object obj) {
+        int index = 0;
+        if (obj == null) {
+            for (; index < size; index++) {
+                if (array[index] == null) {
+                    return index;
+                }
+            }
+        } else {
+            for (; index < size; index++) {
+                if (obj.equals(array[index])) {
+                    return index;
+                }
+            }
+        }
+        return (index == size) ? -1 : index;
+    }
+
+    @Override
+    public int lastIndexOf(Object obj) {
         int index = size - 1;
         if (obj == null) {
             for (; index >= 0; index--) {
@@ -261,11 +278,6 @@ public class MyArrayListImpl<E> extends MyAbstractList<E> {
             }
         }
         return index;
-    }
-
-    @Override
-    public int lastIndexOf(Object obj) {
-        return indexOf(obj);
     }
 
     @Override
