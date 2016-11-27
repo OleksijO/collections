@@ -158,6 +158,7 @@ public class MyTreeSet<E> implements Set<E> {
                 List<E> elements = new LinkedList<E>();
                 addElementFromNodeToListrecursively(oldRoot, elements);
                 System.out.println(elements);
+                Collections.shuffle(elements);
                 elements.forEach(this::add);
                 System.out.println("size = " + size);
                 return true;
