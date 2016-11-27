@@ -89,6 +89,7 @@ public class MyTreeSet<E> implements Set<E> {
 
     @Override
     public boolean add(E e) {
+        System.out.println(" adding " + e);
         if (size == 0) {
             root = new Node<>(e, null, null, null);
             size++;
@@ -150,8 +151,15 @@ public class MyTreeSet<E> implements Set<E> {
             int compResult = comparator.compare(currentValue, valueToRemove);
             if (compResult == 0) {
                 System.out.println("founded node to remove...");
-                removeNode(current);
-                size--;
+                current.data = null;
+                Node<E> oldRoot = root;
+                root = null;
+                size = 0;
+                List<E> elements = new LinkedList<E>();
+                addElementFromNodeToListrecursively(oldRoot, elements);
+                System.out.println(elements);
+                elements.forEach(this::add);
+                System.out.println("size = " + size);
                 return true;
             }
             if (compResult > 0) {
@@ -172,16 +180,15 @@ public class MyTreeSet<E> implements Set<E> {
         }
         return false;
     }
-    private void removeNode(Node<E> current) {
-        List<E> branchToRebalance = new LinkedList<E>();
-        addElementToList(current,branchToRebalance);
-        branchToRebalance.forEach(this::add);
-    }
 
-    private void addElementToList(Node<E> current, List<E> branchToRebalance) {
-        if (current!=null){
-            addElementToList(current.right,branchToRebalance);
-            addElementToList(current.left,branchToRebalance);
+    private void addElementFromNodeToListrecursively(Node<E> current, List<E> elements) {
+        if (current != null) {
+            if (current.data != null) {
+                elements.add(current.data);
+            }
+            addElementFromNodeToListrecursively(current.right, elements);
+            addElementFromNodeToListrecursively(current.left, elements);
+
         }
     }
 
