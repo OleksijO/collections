@@ -1,6 +1,9 @@
 package training.collection;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created by user on 25.11.2016.
@@ -9,15 +12,11 @@ public class MyTreeSet<E> implements Set<E> {
     int size = 0;
     public Node<E> root = null;
 
-    private class Node<E> {
+    static class Node<E> {
         Node<E> parent = null;
         Node<E> left = null;
         Node<E> right = null;
         E data;
-
-        public Comparable<E> getData() {
-            return (Comparable<E>) data;
-        }
 
         public Node(E data, Node<E> parent, Node<E> left, Node<E> right) {
             this.parent = parent;
@@ -25,6 +24,20 @@ public class MyTreeSet<E> implements Set<E> {
             this.right = right;
             this.data = data;
         }
+
+        public void assignToParentInsteadMe(Node<E> newNode) {
+
+            if (parent.left == this) {
+                parent.left = newNode;
+            } else {
+                parent.right = newNode;
+            }
+            if (newNode != null) {
+                newNode.parent = parent;
+            }
+
+        }
+
     }
 
     private Comparator<E> comparator = (o1, o2) -> ((Comparable<E>) o1).compareTo(o2);
@@ -151,16 +164,47 @@ public class MyTreeSet<E> implements Set<E> {
             int compResult = comparator.compare(currentValue, valueToRemove);
             if (compResult == 0) {
                 System.out.println("founded node to remove...");
-                current.data = null;
-                Node<E> oldRoot = root;
-                root = null;
-                size = 0;
-                List<E> elements = new LinkedList<E>();
-                addElementFromNodeToListrecursively(oldRoot, elements);
-                System.out.println(elements);
-                Collections.shuffle(elements);
-                elements.forEach(this::add);
-                System.out.println("size = " + size);
+
+                if (current != root) {
+                    if (current.right == null) {
+                        current.assignToParentInsteadMe(current.left);
+                    } else if (current.left == null) {
+                        current.assignToParentInsteadMe(current.right);
+                    } else {
+                        Node<E> curr = current.right;
+                        while (curr != null) {
+                            if (curr.left != null) {
+                                curr = curr.left;
+                            } else {
+                                current.data = curr.data;
+                                curr.assignToParentInsteadMe(curr.right);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    if (current.left == null && current.right == null) {
+                        root = null;
+                    } else if (current.right == null) {
+                        root = current.left;
+                        root.parent = null;
+                    } else if (current.left == null) {
+                        root = current.right;
+                        root.parent = null;
+                    } else {
+                        Node<E> curr = current.right;
+                        while (curr != null) {
+                            if (curr.left != null) {
+                                curr = curr.left;
+                            } else {
+                                current.data = curr.data;
+                                curr.assignToParentInsteadMe(curr.right);
+                                break;
+                            }
+                        }
+                    }
+                }
+                size--;
                 return true;
             }
             if (compResult > 0) {
@@ -182,55 +226,7 @@ public class MyTreeSet<E> implements Set<E> {
         return false;
     }
 
-    private void addElementFromNodeToListrecursively(Node<E> current, List<E> elements) {
-        if (current != null) {
-            if (current.data != null) {
-                elements.add(current.data);
-            }
-            addElementFromNodeToListrecursively(current.right, elements);
-            addElementFromNodeToListrecursively(current.left, elements);
 
-        }
-    }
-
-    /*
-
-        // this implementation has a problem. Smaller El can get to right side after removing el above and greater
-        // Solution: After removing balancing is necessary!!!
-
-        private void removeNode(Node<E> current) {
-            System.out.println("START DELETING. Begining iteration on last of tree");
-            while (current != null) {
-                System.out.println("current = " + current.data);
-                if (current.right != null) {
-                    System.out.println("right is not null, copying its value to current. ");
-                    current.data = current.right.data;
-                    System.out.println("now current = "+current.data);
-                    current = current.right;
-                    System.out.println("going right....");
-                } else if (current.left != null) {
-                    System.out.println("right=null, left is not null, copying its value to current. ");
-                    current.data = current.left.data;
-                    System.out.println("now current = "+current.data);
-                    current = current.left;
-                    System.out.println("going left....");
-                } else {
-                    System.out.println("right=null, left=null, deleting this node");
-                    Node<E> parent = current.parent;
-                    if (parent!=null) {
-                        if (parent.left==current){
-                            parent.left=null;
-                        } else                     if (parent.right==current){
-                            parent.right=null;
-                        } else {
-                            throw new RuntimeException("unexpected variant of else if cases");
-                        }
-                    }
-                    current = null;
-                }
-            }
-        }
-    */
     @Override
     public boolean containsAll(Collection<?> c) {
         return false;
